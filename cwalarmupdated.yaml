@@ -1,0 +1,31 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  CloudWatchAlarmsTopic:
+    Description: Name of the CloudWatch Alarm Topic
+    Type: String
+  CertificateID:
+    Description: ID of the Certificate
+    Type: String
+Resources:
+  CloudWatchAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+        AlarmName: certificate-expiry-soon
+        AlarmDescription: the certificate is expiring in less than 15 days.
+        ActionsEnabled: true
+        OKActions: []
+        AlarmActions:
+            - !Sub 'arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${CloudWatchAlarmsTopic}'
+        InsufficientDataActions: []
+        MetricName: DaysToExpiry
+        Namespace: AWS/CertificateManager
+        Statistic: Average
+        Dimensions:
+            - Name: CertificateArn
+              Value: !Sub 'arn:aws:acm:${AWS::Region}:${AWS::AccountId}:certificate/${CertificateID}'
+        Period: 86400
+        EvaluationPeriods: 1
+        DatapointsToAlarm: 1
+        Threshold: 15
+        ComparisonOperator: LessThanOrEqualToThreshold
+        TreatMissingData: missing
